@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Pal"
+  given-names: "Avik"
+  orcid: "https://orcid.org/0000-0002-3938-7375"
+- family-names: "Holtorf"
+  given-names: "Flemming"
+- family-names: "Larsson"
+  given-names: "Axel"
+- family-names: "Loman"
+  given-names: "Torkel"
+- family-names: "Rajput"
+  given-names: "Utkarsh"
+- family-names: "Schaefer"
+  given-names: "Frank"
+- family-names: "Qu"
+  given-names: "Qingyu"
+- family-names: "Edelman"
+  given-names: "Alan"
+- family-names: "Rackauckas"
+  given-names: "Chris"
+title: "NonlinearSolve.jl"
+version: 4.0.0
+doi: 10.5281/zenodo.10397607
+date-released: 2024-11-0.3
+url: "https://github.com/SciML/NonlinearSolve.jl"

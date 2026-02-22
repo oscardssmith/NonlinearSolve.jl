@@ -15,12 +15,21 @@ jobs:
         julia-arch: [x86]
         os: [ubuntu-latest]
     steps:
-      - uses: julia-actions/setup-julia@latest
+      - uses: actions/checkout@v6
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
+
       - name: Pkg.add("CompatHelper")
         run: julia -e 'using Pkg; Pkg.add("CompatHelper")'
+
       - name: CompatHelper.main()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: julia -e 'using CompatHelper; CompatHelper.main()'
+        run: |
+          import CompatHelper
+          subdirs = ["", "docs"]
+          append!(subdirs, joinpath.(("lib",), filter(p -> isdir(joinpath("lib", p)), readdir("lib"))))
+          CompatHelper.main(; subdirs)
+        shell: julia --color=yes {0}
+        working-directory: "./"

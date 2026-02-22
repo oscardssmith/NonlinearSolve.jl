@@ -1,14 +1,35 @@
-# Nonlinear Solver Iterator Interface
+# [Nonlinear Solver Iterator Interface](@id iterator)
 
-There is an iterator form of the nonlinear solver which mirrors the DiffEq integrator interface:
+There is an iterator form of the nonlinear solver which somewhat mirrors the DiffEq
+integrator interface:
 
-```julia
+```@example iterator_interface
+import NonlinearSolve as NLS
+
 f(u, p) = u .* u .- 2.0
-u0 = (1.0, 2.0) # brackets
-probB = NonlinearProblem(f, u0)
-solver = init(probB, Falsi()) # Can iterate the solver object
-solver = solve!(solver)
+u0 = 1.5
+probB = NLS.NonlinearProblem(f, u0)
+
+nlcache = NLS.init(probB, NLS.NewtonRaphson())
 ```
 
-Note that the `solver` object is actually immutable since we want to make it
-live on the stack for the sake of performance.
+`init` takes the same keyword arguments as [`solve`](@ref solver_options), but it returns a
+cache object that satisfies `typeof(nlcache) <: AbstractNonlinearSolveCache` and can be used
+to iterate the solver.
+
+The iterator interface supports:
+
+```@docs
+step!(nlcache::NonlinearSolveBase.AbstractNonlinearSolveCache, args...; kwargs...)
+```
+
+We can perform 10 steps of the Newton-Raphson solver with the following:
+
+```@example iterator_interface
+for i in 1:10
+    NLS.step!(nlcache)
+end
+```
+
+We currently don't implement a `Base.iterate` interface but that will be added in the
+future.

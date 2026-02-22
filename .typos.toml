@@ -1,0 +1,16 @@
+[default.extend-words]
+SER = "SER"
+fo = "fo"
+# Additional SciML terms
+setp = "setp"
+getp = "getp"
+indexin = "indexin"
+ists = "ists"
+ispcs = "ispcs"
+eqs = "eqs"
+rhs = "rhs"
+MTK = "MTK"
+
+# NonlinearSolve specific terms
+LSO = "LSO"  # Legitimate abbreviation used in optimization contexts
+clos = "clos"  # Variable name for closure in Enzyme extension
