@@ -45,48 +45,60 @@ function SciMLBase.__solve(
     end
 
     bisecting = true
+    threshold = 0.0
+    C = 16 # safety factor of 4 iteration behind the threshold before reset to bisection
     side = 0 # tracks the side that has moved at the previous iteration
     ϵ = abstol
-    N = -exponent(max(ϵ, nextfloat(zero(y1)))) / 2 + 1
     x0 = x1
     i = 1
     while i < maxiters
         local x3, y3
-        if bisecting
-            # Bisection
+        if bisecting # Bisection
             x3 = (x1 + x2) / 2
             y3 = f(x3)
             # Ordinate of chord at midpoint
             ym = (y1 + y2) / 2
-            if 4abs(ym - y3) < abs(ym) + abs(y3)
+            y1a = abs(y1)
+            y2a = abs(y2)
+            r = y1a > 0 && y2a > 0 ? min(y1a, y2a) / max(y1a, y2a) : 1
+            k = r^0.25 # Factor for limiting deviation from straight line
+            if abs(ym - y3) < k * (abs(ym) + abs(y3))
                 bisecting = false
+                threshold = (x2 - x1) * C
             end
-        else
-            # Falsi
+        else # Falsi
             x3 = (x1 * y2 - y1 * x2) / (y2 - y1)
             y3 = f(x3)
+            threshold /= 2
         end
         if iszero(y3)
             return build_exact_solution(prob, alg, x3, y3, ReturnCode.Success)
-        elseif (x2 - x1) < 2ϵ
+        elseif abs(x3 - x0) <= ϵ
             return build_bracketing_solution(prob, alg, x3, y3, x1, x2, ReturnCode.Success)
         end
         x0 = x3
-        if side == 1
-            m = 1 - y3 / y1
-            y2 *= m <= 0 ? inv(2 * one(y1)) : m
-        elseif side == 2 # Apply Anderson-Bjork modification for side 2
-            m = 1 - y3 / y2
-            y1 *= m <= 0 ? inv(2 * one(y1)) : m
-        end
         if sign(y1) == sign(y3)
-            if !bisecting
+            if side == 1
+                m = 1 - y3 / y1
+                if m <= 0
+                    y2 /= 2
+                else
+                    y2 *= m
+                end
+            elseif !bisecting
                 side = 1
             end
             x1, y1 = x3, y3
         else
-            if !bisecting
-                side = 2
+            if side == -1
+                m = 1 - y3 / y2
+                if m <= 0
+                    y1 /= 2
+                else
+                    y1 *= m
+                end
+            elseif !bisecting
+                side = -1
             end
             x2, y2 = x3, y3
         end
@@ -94,13 +106,10 @@ function SciMLBase.__solve(
             return build_bracketing_solution(prob, alg, x2, f(x2), x1, x2, ReturnCode.FloatingPointLimit)
         end
         i += 1
-        if i >= N #taking longer than expected
+        if x2 - x1 > threshold # if AB fails to shrink the interval enough
             bisecting = true
             side = 0
-            maxiters -= N
-            i -= N
         end
     end
-
     return build_bracketing_solution(prob, alg, x1, y1, x1, x2, ReturnCode.MaxIters)
 end
